@@ -1,4 +1,4 @@
-PKGS := github.com/pkg/errors
+PKGS := github.com/youjiaxing/errorc
 SRCDIRS := $(shell go list -f '{{.Dir}}' $(PKGS))
 GO := go
 
