@@ -1,6 +1,6 @@
-// +build go1.13
+//go:build go1.13
 
-package errors
+package errorc
 
 import (
 	stderrors "errors"
@@ -30,14 +30,6 @@ func TestIs(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "with stack",
-			args: args{
-				err:    WithStack(err),
-				target: err,
-			},
-			want: true,
-		},
-		{
 			name: "with message",
 			args: args{
 				err:    WithMessage(err, "test"),
@@ -46,9 +38,26 @@ func TestIs(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "with message format",
+			name: "Wrap",
 			args: args{
-				err:    WithMessagef(err, "%s", "test"),
+				err:    Wrap(err, "test"),
+				target: err,
+			},
+			want: true,
+		},
+
+		{
+			name: "WrapC",
+			args: args{
+				err:    WrapC(err, 1, "test"),
+				target: err,
+			},
+			want: true,
+		},
+		{
+			name: "with code",
+			args: args{
+				err:    WithCode(err, 1, "%s", "test"),
 				target: err,
 			},
 			want: true,
@@ -90,14 +99,6 @@ func TestAs(t *testing.T) {
 		want bool
 	}{
 		{
-			name: "with stack",
-			args: args{
-				err:    WithStack(err),
-				target: new(customErr),
-			},
-			want: true,
-		},
-		{
 			name: "with message",
 			args: args{
 				err:    WithMessage(err, "test"),
@@ -106,9 +107,9 @@ func TestAs(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "with message format",
+			name: "with code",
 			args: args{
-				err:    WithMessagef(err, "%s", "test"),
+				err:    WithCode(err, 1, "%s", "test"),
 				target: new(customErr),
 			},
 			want: true,
@@ -136,6 +137,20 @@ func TestAs(t *testing.T) {
 	}
 }
 
+func TestAs_extend(t *testing.T) {
+	e1 := stderrors.New("io read timeout")
+	e2 := WrapC(e1, 1, "conn error")
+	e3 := fmt.Errorf("handle fail: %w", e2)
+
+	target := new(codeError)
+	if got := As(e3, &target); got != true {
+		t.Errorf("As() = %v, want = %v", got, true)
+	}
+	if !reflect.DeepEqual(target, e2) {
+		t.Errorf("set target error failed, target error is %v", e2)
+	}
+}
+
 func TestUnwrap(t *testing.T) {
 	err := New("test")
 
@@ -148,18 +163,13 @@ func TestUnwrap(t *testing.T) {
 		want error
 	}{
 		{
-			name: "with stack",
-			args: args{err: WithStack(err)},
-			want: err,
-		},
-		{
 			name: "with message",
 			args: args{err: WithMessage(err, "test")},
 			want: err,
 		},
 		{
-			name: "with message format",
-			args: args{err: WithMessagef(err, "%s", "test")},
+			name: "with code",
+			args: args{err: WithCode(err, 1, "%s", "test")},
 			want: err,
 		},
 		{

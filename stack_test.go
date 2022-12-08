@@ -1,4 +1,4 @@
-package errors
+package errorc
 
 import (
 	"fmt"
@@ -21,6 +21,8 @@ func (x *X) ptr() Frame {
 }
 
 func TestFrameFormat(t *testing.T) {
+	fmt.Printf("%d\n", initpc)
+
 	var tests = []struct {
 		Frame
 		format string
@@ -32,8 +34,8 @@ func TestFrameFormat(t *testing.T) {
 	}, {
 		initpc,
 		"%+s",
-		"github.com/pkg/errors.init\n" +
-			"\t.+/github.com/pkg/errors/stack_test.go",
+		"github.com/youjiaxing/errorc.init\n" +
+			"\t.+/errorc/stack_test.go",
 	}, {
 		0,
 		"%s",
@@ -79,8 +81,8 @@ func TestFrameFormat(t *testing.T) {
 	}, {
 		initpc,
 		"%+v",
-		"github.com/pkg/errors.init\n" +
-			"\t.+/github.com/pkg/errors/stack_test.go:9",
+		"github.com/youjiaxing/errorc.init\n" +
+			"\t/Users/youjiaxing/Documents/GitHub/youjiaxing/errorc/stack_test.go:9",
 	}, {
 		0,
 		"%v",
@@ -119,38 +121,38 @@ func TestStackTrace(t *testing.T) {
 		want []string
 	}{{
 		New("ooh"), []string{
-			"github.com/pkg/errors.TestStackTrace\n" +
-				"\t.+/github.com/pkg/errors/stack_test.go:121",
+			"github.com/youjiaxing/errorc.TestStackTrace\n" +
+				"\t.+/errorc/stack_test.go:123",
 		},
 	}, {
 		Wrap(New("ooh"), "ahh"), []string{
-			"github.com/pkg/errors.TestStackTrace\n" +
-				"\t.+/github.com/pkg/errors/stack_test.go:126", // this is the stack of Wrap, not New
+			"github.com/youjiaxing/errorc.TestStackTrace\n" +
+				"\t.+/errorc/stack_test.go:128", // this is the stack of Wrap, not New
 		},
 	}, {
 		Cause(Wrap(New("ooh"), "ahh")), []string{
-			"github.com/pkg/errors.TestStackTrace\n" +
-				"\t.+/github.com/pkg/errors/stack_test.go:131", // this is the stack of New
+			"github.com/youjiaxing/errorc.TestStackTrace\n" +
+				"\t.+/errorc/stack_test.go:133", // this is the stack of New
 		},
 	}, {
 		func() error { return New("ooh") }(), []string{
-			`github.com/pkg/errors.TestStackTrace.func1` +
-				"\n\t.+/github.com/pkg/errors/stack_test.go:136", // this is the stack of New
-			"github.com/pkg/errors.TestStackTrace\n" +
-				"\t.+/github.com/pkg/errors/stack_test.go:136", // this is the stack of New's caller
+			`github.com/youjiaxing/errorc.TestStackTrace.func1` +
+				"\n\t.+/errorc/stack_test.go:138", // this is the stack of New
+			"github.com/youjiaxing/errorc.TestStackTrace\n" +
+				"\t.+/errorc/stack_test.go:138", // this is the stack of New's caller
 		},
 	}, {
 		Cause(func() error {
 			return func() error {
-				return Errorf("hello %s", fmt.Sprintf("world: %s", "ooh"))
+				return New("hello %s", fmt.Sprintf("world: %s", "ooh"))
 			}()
 		}()), []string{
-			`github.com/pkg/errors.TestStackTrace.func2.1` +
-				"\n\t.+/github.com/pkg/errors/stack_test.go:145", // this is the stack of Errorf
-			`github.com/pkg/errors.TestStackTrace.func2` +
-				"\n\t.+/github.com/pkg/errors/stack_test.go:146", // this is the stack of Errorf's caller
-			"github.com/pkg/errors.TestStackTrace\n" +
-				"\t.+/github.com/pkg/errors/stack_test.go:147", // this is the stack of Errorf's caller's caller
+			`github.com/youjiaxing/errorc.TestStackTrace.func2.1` +
+				"\n\t.+/errorc/stack_test.go:147", // this is the stack of New
+			`github.com/youjiaxing/errorc.TestStackTrace.func2` +
+				"\n\t.+/errorc/stack_test.go:148", // this is the stack of New's caller
+			"github.com/youjiaxing/errorc.TestStackTrace\n" +
+				"\t.+/errorc/stack_test.go:149", // this is the stack of New's caller's caller
 		},
 	}}
 	for i, tt := range tests {
@@ -168,77 +170,77 @@ func TestStackTrace(t *testing.T) {
 	}
 }
 
-func stackTrace() StackTrace {
-	const depth = 8
-	var pcs [depth]uintptr
-	n := runtime.Callers(1, pcs[:])
-	var st stack = pcs[0:n]
-	return st.StackTrace()
-}
-
-func TestStackTraceFormat(t *testing.T) {
-	tests := []struct {
-		StackTrace
-		format string
-		want   string
-	}{{
-		nil,
-		"%s",
-		`\[\]`,
-	}, {
-		nil,
-		"%v",
-		`\[\]`,
-	}, {
-		nil,
-		"%+v",
-		"",
-	}, {
-		nil,
-		"%#v",
-		`\[\]errors.Frame\(nil\)`,
-	}, {
-		make(StackTrace, 0),
-		"%s",
-		`\[\]`,
-	}, {
-		make(StackTrace, 0),
-		"%v",
-		`\[\]`,
-	}, {
-		make(StackTrace, 0),
-		"%+v",
-		"",
-	}, {
-		make(StackTrace, 0),
-		"%#v",
-		`\[\]errors.Frame{}`,
-	}, {
-		stackTrace()[:2],
-		"%s",
-		`\[stack_test.go stack_test.go\]`,
-	}, {
-		stackTrace()[:2],
-		"%v",
-		`\[stack_test.go:174 stack_test.go:221\]`,
-	}, {
-		stackTrace()[:2],
-		"%+v",
-		"\n" +
-			"github.com/pkg/errors.stackTrace\n" +
-			"\t.+/github.com/pkg/errors/stack_test.go:174\n" +
-			"github.com/pkg/errors.TestStackTraceFormat\n" +
-			"\t.+/github.com/pkg/errors/stack_test.go:225",
-	}, {
-		stackTrace()[:2],
-		"%#v",
-		`\[\]errors.Frame{stack_test.go:174, stack_test.go:233}`,
-	}}
-
-	for i, tt := range tests {
-		testFormatRegexp(t, i, tt.StackTrace, tt.format, tt.want)
-	}
-}
+//func stackTrace() StackTrace {
+//	const depth = 8
+//	var pcs [depth]uintptr
+//	n := runtime.Callers(1, pcs[:])
+//	var st stack = pcs[0:n]
+//	return st.StackTrace()
+//}
+//
+//func TestStackTraceFormat(t *testing.T) {
+//	tests := []struct {
+//		StackTrace
+//		format string
+//		want   string
+//	}{{
+//		nil,
+//		"%s",
+//		`\[\]`,
+//	}, {
+//		nil,
+//		"%v",
+//		`\[\]`,
+//	}, {
+//		nil,
+//		"%+v",
+//		"",
+//	}, {
+//		nil,
+//		"%#v",
+//		`\[\]errors.Frame\(nil\)`,
+//	}, {
+//		make(StackTrace, 0),
+//		"%s",
+//		`\[\]`,
+//	}, {
+//		make(StackTrace, 0),
+//		"%v",
+//		`\[\]`,
+//	}, {
+//		make(StackTrace, 0),
+//		"%+v",
+//		"",
+//	}, {
+//		make(StackTrace, 0),
+//		"%#v",
+//		`\[\]errors.Frame{}`,
+//	}, {
+//		stackTrace()[:2],
+//		"%s",
+//		`\[stack_test.go stack_test.go\]`,
+//	}, {
+//		stackTrace()[:2],
+//		"%v",
+//		`\[stack_test.go:174 stack_test.go:221\]`,
+//	}, {
+//		stackTrace()[:2],
+//		"%+v",
+//		"\n" +
+//			"github.com/pkg/errors.stackTrace\n" +
+//			"\t.+/errorc/stack_test.go:174\n" +
+//			"github.com/youjiaxing/errorc.TestStackTraceFormat\n" +
+//			"\t.+/errorc/stack_test.go:225",
+//	}, {
+//		stackTrace()[:2],
+//		"%#v",
+//		`\[\]errors.Frame{stack_test.go:174, stack_test.go:233}`,
+//	}}
+//
+//	for i, tt := range tests {
+//		testFormatRegexp(t, i, tt.StackTrace, tt.format, tt.want)
+//	}
+//}
 
 // a version of runtime.Caller that returns a Frame, not a uintptr.
 func caller() Frame {

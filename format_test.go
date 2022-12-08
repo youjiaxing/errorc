@@ -1,4 +1,4 @@
-package errors
+package errorc
 
 import (
 	"errors"
@@ -25,9 +25,9 @@ func TestFormatNew(t *testing.T) {
 	}, {
 		New("error"),
 		"%+v",
-		"error\n" +
-			"github.com/pkg/errors.TestFormatNew\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:26",
+		"code: 0, msg: error\n" +
+			"github.com/youjiaxing/errorc.TestFormatNew\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:26",
 	}, {
 		New("error"),
 		"%q",
@@ -39,25 +39,29 @@ func TestFormatNew(t *testing.T) {
 	}
 }
 
-func TestFormatErrorf(t *testing.T) {
+func TestFormatNewC(t *testing.T) {
 	tests := []struct {
 		error
 		format string
 		want   string
 	}{{
-		Errorf("%s", "error"),
+		NewC(1, "error"),
 		"%s",
 		"error",
 	}, {
-		Errorf("%s", "error"),
+		NewC(1, "error"),
 		"%v",
 		"error",
 	}, {
-		Errorf("%s", "error"),
+		NewC(1, "error"),
 		"%+v",
-		"error\n" +
-			"github.com/pkg/errors.TestFormatErrorf\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:56",
+		"code: 1, msg: error\n" +
+			"github.com/youjiaxing/errorc.TestFormatNew\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:56",
+	}, {
+		New("error"),
+		"%q",
+		`"error"`,
 	}}
 
 	for i, tt := range tests {
@@ -73,43 +77,54 @@ func TestFormatWrap(t *testing.T) {
 	}{{
 		Wrap(New("error"), "error2"),
 		"%s",
-		"error2: error",
+		"error2",
 	}, {
 		Wrap(New("error"), "error2"),
 		"%v",
-		"error2: error",
+		"error2",
 	}, {
 		Wrap(New("error"), "error2"),
 		"%+v",
-		"error\n" +
-			"github.com/pkg/errors.TestFormatWrap\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:82",
+		"code: 0, msg: error\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrap\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:86",
 	}, {
 		Wrap(io.EOF, "error"),
 		"%s",
-		"error: EOF",
+		"error",
 	}, {
 		Wrap(io.EOF, "error"),
 		"%v",
-		"error: EOF",
+		"error",
 	}, {
 		Wrap(io.EOF, "error"),
 		"%+v",
 		"EOF\n" +
-			"error\n" +
-			"github.com/pkg/errors.TestFormatWrap\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:96",
+			"code: 0, msg: error\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrap\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:100",
 	}, {
 		Wrap(Wrap(io.EOF, "error1"), "error2"),
 		"%+v",
 		"EOF\n" +
-			"error1\n" +
-			"github.com/pkg/errors.TestFormatWrap\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:103\n",
+			"code: 0, msg: error1\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrap\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:107\n" +
+			"testing.tRunner\n" +
+			"\t.+/src/testing/testing.go:1446\n" +
+			"runtime.goexit\n" +
+			"\t.+/src/runtime/asm_amd64.s:1594\n" +
+			"code: 0, msg: error2\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrap\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:107\n" +
+			"testing.tRunner\n" +
+			"\t.+/src/testing/testing.go:1446\n" +
+			"runtime.goexit\n" +
+			"\t.+/src/runtime/asm_amd64.s:1594",
 	}, {
 		Wrap(New("error with space"), "context"),
 		"%q",
-		`"context: error with space"`,
+		`"context"`,
 	}}
 
 	for i, tt := range tests {
@@ -117,113 +132,77 @@ func TestFormatWrap(t *testing.T) {
 	}
 }
 
-func TestFormatWrapf(t *testing.T) {
+func TestFormatWrapC(t *testing.T) {
 	tests := []struct {
 		error
 		format string
 		want   string
 	}{{
-		Wrapf(io.EOF, "error%d", 2),
+		WrapC(New("error"), 1, "error2"),
 		"%s",
-		"error2: EOF",
+		"error2",
 	}, {
-		Wrapf(io.EOF, "error%d", 2),
+		WrapC(New("error"), 1, "error2"),
 		"%v",
-		"error2: EOF",
+		"error2",
 	}, {
-		Wrapf(io.EOF, "error%d", 2),
+		WrapC(New("error"), 1, "error2"),
+		"%+v",
+		"code: 0, msg: error\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrapC\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:149\n" +
+			"testing.tRunner\n" +
+			"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+			"runtime.goexit\n" +
+			"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594\n" +
+			"code: 1, msg: error2\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrapC\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:149\n" +
+			"testing.tRunner\n" +
+			"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+			"runtime.goexit\n" +
+			"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+	}, {
+		WrapC(io.EOF, 1, "error"),
+		"%s",
+		"error",
+	}, {
+		WrapC(io.EOF, 1, "error"),
+		"%v",
+		"error",
+	}, {
+		WrapC(io.EOF, 1, "error"),
 		"%+v",
 		"EOF\n" +
-			"error2\n" +
-			"github.com/pkg/errors.TestFormatWrapf\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:134",
+			"code: 1, msg: error\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrapC\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:174",
 	}, {
-		Wrapf(New("error"), "error%d", 2),
-		"%s",
-		"error2: error",
-	}, {
-		Wrapf(New("error"), "error%d", 2),
-		"%v",
-		"error2: error",
-	}, {
-		Wrapf(New("error"), "error%d", 2),
+		WrapC(WrapC(io.EOF, 1, "error1"), 2, "error2"),
 		"%+v",
-		"error\n" +
-			"github.com/pkg/errors.TestFormatWrapf\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:149",
+		"EOF\n" +
+			"code: 1, msg: error1\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrapC\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:181\n" +
+			"testing.tRunner\n" +
+			"\t.+/src/testing/testing.go:1446\n" +
+			"runtime.goexit\n" +
+			"\t.+/src/runtime/asm_amd64.s:1594\n" +
+			"code: 2, msg: error2\n" +
+			"github.com/youjiaxing/errorc.TestFormatWrapC\n" +
+			"\t.+/youjiaxing/errorc/format_test.go:181\n" +
+			"testing.tRunner\n" +
+			"\t.+/src/testing/testing.go:1446\n" +
+			"runtime.goexit\n" +
+			"\t.+/src/runtime/asm_amd64.s:1594",
+	}, {
+		WrapC(New("error with space"), 1, "context"),
+		"%q",
+		`"context"`,
 	}}
 
 	for i, tt := range tests {
 		testFormatRegexp(t, i, tt.error, tt.format, tt.want)
-	}
-}
-
-func TestFormatWithStack(t *testing.T) {
-	tests := []struct {
-		error
-		format string
-		want   []string
-	}{{
-		WithStack(io.EOF),
-		"%s",
-		[]string{"EOF"},
-	}, {
-		WithStack(io.EOF),
-		"%v",
-		[]string{"EOF"},
-	}, {
-		WithStack(io.EOF),
-		"%+v",
-		[]string{"EOF",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:175"},
-	}, {
-		WithStack(New("error")),
-		"%s",
-		[]string{"error"},
-	}, {
-		WithStack(New("error")),
-		"%v",
-		[]string{"error"},
-	}, {
-		WithStack(New("error")),
-		"%+v",
-		[]string{"error",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:189",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:189"},
-	}, {
-		WithStack(WithStack(io.EOF)),
-		"%+v",
-		[]string{"EOF",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:197",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:197"},
-	}, {
-		WithStack(WithStack(Wrapf(io.EOF, "message"))),
-		"%+v",
-		[]string{"EOF",
-			"message",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:205",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:205",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:205"},
-	}, {
-		WithStack(Errorf("error%d", 1)),
-		"%+v",
-		[]string{"error1",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:216",
-			"github.com/pkg/errors.TestFormatWithStack\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:216"},
-	}}
-
-	for i, tt := range tests {
-		testFormatCompleteCompare(t, i, tt.error, tt.format, tt.want, true)
 	}
 }
 
@@ -233,73 +212,77 @@ func TestFormatWithMessage(t *testing.T) {
 		format string
 		want   []string
 	}{{
-		WithMessage(New("error"), "error2"),
+		WithMessage(io.EOF, "with message"),
 		"%s",
-		[]string{"error2: error"},
+		[]string{"with message"},
 	}, {
-		WithMessage(New("error"), "error2"),
+		WithMessage(io.EOF, "with message"),
 		"%v",
-		[]string{"error2: error"},
+		[]string{"with message"},
 	}, {
-		WithMessage(New("error"), "error2"),
+		WithMessage(io.EOF, "with message"),
 		"%+v",
-		[]string{
-			"error",
-			"github.com/pkg/errors.TestFormatWithMessage\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:244",
-			"error2"},
+		[]string{"EOF",
+			"code: 0, msg: with message",
+			"github.com/youjiaxing/errorc.TestFormatWithMessage\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:223"},
 	}, {
-		WithMessage(io.EOF, "addition1"),
+		WithMessage(New("error"), "with message"),
 		"%s",
-		[]string{"addition1: EOF"},
+		[]string{"with message"},
 	}, {
-		WithMessage(io.EOF, "addition1"),
+		WithMessage(New("error"), "with message"),
 		"%v",
-		[]string{"addition1: EOF"},
+		[]string{"with message"},
 	}, {
-		WithMessage(io.EOF, "addition1"),
+		WithMessage(New("error"), "with message"),
 		"%+v",
-		[]string{"EOF", "addition1"},
+		[]string{"code: 0, msg: error",
+			"github.com/youjiaxing/errorc.TestFormatWithMessage\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:238\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 0, msg: with message"},
 	}, {
-		WithMessage(WithMessage(io.EOF, "addition1"), "addition2"),
-		"%v",
-		[]string{"addition2: addition1: EOF"},
-	}, {
-		WithMessage(WithMessage(io.EOF, "addition1"), "addition2"),
+		WithMessage(WithMessage(io.EOF, "with message"), "with message2"),
 		"%+v",
-		[]string{"EOF", "addition1", "addition2"},
+		[]string{"EOF",
+			"code: 0, msg: with message",
+			"github.com/youjiaxing/errorc.TestFormatWithMessage\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:249\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 0, msg: with message2",
+		},
 	}, {
-		Wrap(WithMessage(io.EOF, "error1"), "error2"),
+		WithMessage(WithMessage(Wrap(io.EOF, "message"), "with message"), "with message2"),
 		"%+v",
-		[]string{"EOF", "error1", "error2",
-			"github.com/pkg/errors.TestFormatWithMessage\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:272"},
+		[]string{"EOF",
+			"code: 0, msg: message",
+			"github.com/youjiaxing/errorc.TestFormatWithMessage\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:262\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 0, msg: with message",
+			"code: 0, msg: with message2",
+		},
 	}, {
-		WithMessage(Errorf("error%d", 1), "error2"),
+		WithMessage(New("error%d", 1), "with message"),
 		"%+v",
-		[]string{"error1",
-			"github.com/pkg/errors.TestFormatWithMessage\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:278",
-			"error2"},
-	}, {
-		WithMessage(WithStack(io.EOF), "error"),
-		"%+v",
-		[]string{
-			"EOF",
-			"github.com/pkg/errors.TestFormatWithMessage\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:285",
-			"error"},
-	}, {
-		WithMessage(Wrap(WithStack(io.EOF), "inside-error"), "outside-error"),
-		"%+v",
-		[]string{
-			"EOF",
-			"github.com/pkg/errors.TestFormatWithMessage\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:293",
-			"inside-error",
-			"github.com/pkg/errors.TestFormatWithMessage\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:293",
-			"outside-error"},
+		[]string{"code: 0, msg: error1",
+			"github.com/youjiaxing/errorc.TestFormatWithMessage\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:276\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 0, msg: with message"},
 	}}
 
 	for i, tt := range tests {
@@ -307,80 +290,129 @@ func TestFormatWithMessage(t *testing.T) {
 	}
 }
 
-func TestFormatGeneric(t *testing.T) {
-	starts := []struct {
-		err  error
-		want []string
-	}{
-		{New("new-error"), []string{
-			"new-error",
-			"github.com/pkg/errors.TestFormatGeneric\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:315"},
-		}, {Errorf("errorf-error"), []string{
-			"errorf-error",
-			"github.com/pkg/errors.TestFormatGeneric\n" +
-				"\t.+/github.com/pkg/errors/format_test.go:319"},
-		}, {errors.New("errors-new-error"), []string{
-			"errors-new-error"},
-		},
-	}
-
-	wrappers := []wrapper{
-		{
-			func(err error) error { return WithMessage(err, "with-message") },
-			[]string{"with-message"},
-		}, {
-			func(err error) error { return WithStack(err) },
-			[]string{
-				"github.com/pkg/errors.(func·002|TestFormatGeneric.func2)\n\t" +
-					".+/github.com/pkg/errors/format_test.go:333",
-			},
-		}, {
-			func(err error) error { return Wrap(err, "wrap-error") },
-			[]string{
-				"wrap-error",
-				"github.com/pkg/errors.(func·003|TestFormatGeneric.func3)\n\t" +
-					".+/github.com/pkg/errors/format_test.go:339",
-			},
-		}, {
-			func(err error) error { return Wrapf(err, "wrapf-error%d", 1) },
-			[]string{
-				"wrapf-error1",
-				"github.com/pkg/errors.(func·004|TestFormatGeneric.func4)\n\t" +
-					".+/github.com/pkg/errors/format_test.go:346",
-			},
-		},
-	}
-
-	for s := range starts {
-		err := starts[s].err
-		want := starts[s].want
-		testFormatCompleteCompare(t, s, err, "%+v", want, false)
-		testGenericRecursive(t, err, want, wrappers, 3)
-	}
-}
-
-func wrappedNew(message string) error { // This function will be mid-stack inlined in go 1.12+
-	return New(message)
-}
-
-func TestFormatWrappedNew(t *testing.T) {
+func TestFormatWithCode(t *testing.T) {
 	tests := []struct {
 		error
 		format string
-		want   string
+		want   []string
 	}{{
-		wrappedNew("error"),
+		WithCode(New("error"), 1, "error2"),
+		"%s",
+		[]string{"error2"},
+	}, {
+		WithCode(New("error"), 1, "error2"),
+		"%v",
+		[]string{"error2"},
+	}, {
+		WithCode(New("error"), 1, "error2"),
 		"%+v",
-		"error\n" +
-			"github.com/pkg/errors.wrappedNew\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:364\n" +
-			"github.com/pkg/errors.TestFormatWrappedNew\n" +
-			"\t.+/github.com/pkg/errors/format_test.go:373",
+		[]string{
+			"code: 0, msg: error",
+			"github.com/youjiaxing/errorc.TestFormatWithCode\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:307\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 1, msg: error2",
+		},
+	}, {
+		WithCode(io.EOF, 1, "addition1"),
+		"%s",
+		[]string{"addition1"},
+	}, {
+		WithCode(io.EOF, 1, "addition1"),
+		"%v",
+		[]string{"addition1"},
+	}, {
+		WithCode(io.EOF, 1, "addition1"),
+		"%+v",
+		[]string{
+			"EOF",
+			"code: 1, msg: addition1",
+			"github.com/youjiaxing/errorc.TestFormatWithCode\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:328\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+		},
+	}, {
+		WithCode(WithCode(io.EOF, 1, "addition1"), 2, "addition2"),
+		"%v",
+		[]string{"addition2"},
+	}, {
+		WithCode(WithCode(io.EOF, 1, "addition1"), 2, "addition2"),
+		"%+v",
+		[]string{
+			"EOF",
+			"code: 1, msg: addition1",
+			"github.com/youjiaxing/errorc.TestFormatWithCode\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:345\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 2, msg: addition2",
+		},
+	}, {
+		Wrap(WithCode(io.EOF, 1, "error1"), "error2"),
+		"%+v",
+		[]string{
+			"EOF",
+			"code: 1, msg: error1",
+			"github.com/youjiaxing/errorc.TestFormatWithCode\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:359\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 1, msg: error2",
+			"github.com/youjiaxing/errorc.TestFormatWithCode\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:359\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+		},
+	}, {
+		WithCode(WithMessage(io.EOF, "EOF"), 1, "error"),
+		"%+v",
+		[]string{
+			"EOF",
+			"code: 0, msg: EOF",
+			"github.com/youjiaxing/errorc.TestFormatWithCode\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:379\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 1, msg: error",
+		},
+	}, {
+		WithCode(Wrap(WithMessage(io.EOF, "EOF"), "inside-error"), 1, "outside-error"),
+		"%+v",
+		[]string{
+			"EOF",
+			"code: 0, msg: EOF",
+			"github.com/youjiaxing/errorc.TestFormatWithCode\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:393\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 0, msg: inside-error",
+			"github.com/youjiaxing/errorc.TestFormatWithCode\n" +
+				"\t.+/youjiaxing/errorc/format_test.go:393\n" +
+				"testing.tRunner\n" +
+				"\t/usr/local/opt/go/libexec/src/testing/testing.go:1446\n" +
+				"runtime.goexit\n" +
+				"\t/usr/local/opt/go/libexec/src/runtime/asm_amd64.s:1594",
+			"code: 1, msg: outside-error"},
 	}}
 
 	for i, tt := range tests {
-		testFormatRegexp(t, i, tt.error, tt.format, tt.want)
+		testFormatCompleteCompare(t, i, tt.error, tt.format, tt.want, true)
 	}
 }
 
@@ -409,22 +441,21 @@ func testFormatRegexp(t *testing.T, n int, arg interface{}, format, want string)
 var stackLineR = regexp.MustCompile(`\.`)
 
 // parseBlocks parses input into a slice, where:
-//  - incase entry contains a newline, its a stacktrace
-//  - incase entry contains no newline, its a solo line.
+//   - incase entry contains a newline, its a stacktrace
+//   - incase entry contains no newline, its a solo line.
 //
 // Detecting stack boundaries only works incase the WithStack-calls are
 // to be found on the same line, thats why it is optionally here.
 //
 // Example use:
 //
-// for _, e := range blocks {
-//   if strings.ContainsAny(e, "\n") {
-//     // Match as stack
-//   } else {
-//     // Match as line
-//   }
-// }
-//
+//	for _, e := range blocks {
+//	  if strings.ContainsAny(e, "\n") {
+//	    // Match as stack
+//	  } else {
+//	    // Match as line
+//	  }
+//	}
 func parseBlocks(input string, detectStackboundaries bool) ([]string, error) {
 	var blocks []string
 

@@ -1,6 +1,7 @@
+//go:build go1.7
 // +build go1.7
 
-package errors
+package errorc
 
 import (
 	"fmt"
@@ -9,18 +10,18 @@ import (
 	stderrors "errors"
 )
 
-func noErrors(at, depth int) error {
+func noErrorC(at, depth int) error {
 	if at >= depth {
 		return stderrors.New("no error")
 	}
-	return noErrors(at+1, depth)
+	return noErrorC(at+1, depth)
 }
 
-func yesErrors(at, depth int) error {
+func yesErrorC(at, depth int) error {
 	if at >= depth {
-		return New("ye error")
+		return NewC(at, "ye error")
 	}
-	return yesErrors(at+1, depth)
+	return yesErrorC(at+1, depth)
 }
 
 // GlobalE is an exported global to store the result of benchmark results,
@@ -41,16 +42,16 @@ func BenchmarkErrors(b *testing.B) {
 		{1000, true},
 	}
 	for _, r := range runs {
-		part := "pkg/errors"
+		part := "youjiaxing/errorc"
 		if r.std {
 			part = "errors"
 		}
 		name := fmt.Sprintf("%s-stack-%d", part, r.stack)
 		b.Run(name, func(b *testing.B) {
 			var err error
-			f := yesErrors
+			f := yesErrorC
 			if r.std {
-				f = noErrors
+				f = noErrorC
 			}
 			b.ReportAllocs()
 			for i := 0; i < b.N; i++ {
@@ -70,12 +71,15 @@ func BenchmarkStackFormatting(b *testing.B) {
 	runs := []run{
 		{10, "%s"},
 		{10, "%v"},
+		{10, "%-v"},
 		{10, "%+v"},
 		{30, "%s"},
 		{30, "%v"},
+		{30, "%-v"},
 		{30, "%+v"},
 		{60, "%s"},
 		{60, "%v"},
+		{60, "%-v"},
 		{60, "%+v"},
 	}
 
@@ -83,7 +87,7 @@ func BenchmarkStackFormatting(b *testing.B) {
 	for _, r := range runs {
 		name := fmt.Sprintf("%s-stack-%d", r.format, r.stack)
 		b.Run(name, func(b *testing.B) {
-			err := yesErrors(0, r.stack)
+			err := yesErrorC(0, r.stack)
 			b.ReportAllocs()
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -96,8 +100,8 @@ func BenchmarkStackFormatting(b *testing.B) {
 	for _, r := range runs {
 		name := fmt.Sprintf("%s-stacktrace-%d", r.format, r.stack)
 		b.Run(name, func(b *testing.B) {
-			err := yesErrors(0, r.stack)
-			st := err.(*fundamental).stack.StackTrace()
+			err := yesErrorC(0, r.stack)
+			st := err.(*codeError).stack.StackTrace()
 			b.ReportAllocs()
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {

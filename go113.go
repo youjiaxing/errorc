@@ -1,6 +1,6 @@
-// +build go1.13
+//go:build go1.13
 
-package errors
+package errorc
 
 import (
 	stderrors "errors"
